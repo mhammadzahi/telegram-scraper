@@ -3,6 +3,12 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+
+
+_0639_session.session
+
+
+
 # C extensions
 *.so
 
