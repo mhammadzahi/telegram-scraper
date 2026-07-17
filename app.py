@@ -18,12 +18,11 @@ phone_number = os.getenv('PHONE_NUMBER')
 client = TelegramClient('_0639_session', api_id, api_hash)
 
 async def main():
-    entity = await client.get_entity('UAE_ABU_DHABI_jobs')
+    entity = await client.get_entity('jobs_uae')
 
     err = False
     counter = 0
-    maximum = 3000
-    email_list = []
+    maximum = 10000
     email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
 
     async for message in client.iter_messages(entity):
@@ -36,8 +35,9 @@ async def main():
                     email = re.search(email_pattern, message.text)
                     if email:
                         eml = email.group()
-                        email_list.append(eml)
                         print(eml)
+                        with open('j_uae_mails.txt', 'a') as f:
+                            f.write(eml + '\n')
 
                 else:
                     continue
@@ -67,11 +67,6 @@ async def main():
             if err:
                 print("finally")
                 continue
-
-
-    with open('data_UAE_ABU_DHABI_jobs__.txt', 'w') as f:
-        for email_ in email_list:
-            f.write(email_ + '\n')
 
 
     await client.disconnect()
