@@ -1,76 +1,54 @@
 from telethon.sync import TelegramClient
-import asyncio
-import re
-import random
-
 from dotenv import load_dotenv
+import asyncio
 import os
+import random
+import re
 
 
 load_dotenv()
 
-
 api_id = int(os.getenv('API_ID'))
 api_hash = os.getenv('API_HASH')
-phone_number = os.getenv('PHONE_NUMBER')
+entity_name = str(os.getenv('ENTITY_NAME'))
 
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+client = TelegramClient('abc_0639_session', api_id, api_hash, loop=loop)
 
-client = TelegramClient('_0639_session', api_id, api_hash)
 
 async def main():
-    entity = await client.get_entity('jobs_uae')
+    entity = await client.get_entity(entity_name)
 
-    err = False
     counter = 0
-    maximum = 10000
+    maximum = 20000
     email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
 
-    async for message in client.iter_messages(entity):
-        try:
-            err = False
-            counter = counter + 1
-            if counter <= maximum:
-                print(message.date, counter)
-                if message.text:
-                    email = re.search(email_pattern, message.text)
-                    if email:
-                        eml = email.group()
-                        print(eml)
-                        with open('j_uae_mails.txt', 'a') as f:
-                            f.write(eml + '\n')
-
-                else:
-                    continue
-
-                await asyncio.sleep(random.choice([2, 1]))
-
-            else:
+    try:
+        async for message in client.iter_messages(entity):
+            counter += 1
+            if counter > maximum:
                 print('done!')
                 break
 
-        except Exception as e:
-            err = True
-            print(f'Error e: {e}')
-            continue
-
-        except TypeError as te:
-            err = True
-            print(f'Error te: {te}')
-            continue
-        
-        except ValueError as ve:
-            err = True
-            print(f'Error ve: {ve}')
-            continue
-
-        finally:
-            if err:
-                print("finally")
+            print(message.date, counter)
+            if not message.text:
                 continue
 
+            email = re.search(email_pattern, message.text)
+            if email:
+                eml = email.group()
+                print(eml)
+                with open(f'{entity_name}_mails.txt', 'a', encoding='utf-8') as f:
+                    f.write(eml + '\n')
 
-    await client.disconnect()
+            await asyncio.sleep(random.choice([2, 1]))
+    except Exception as e:
+        print(f'Error: {e}')
+    finally:
+        await client.disconnect()
 
 
-with client:
-    client.loop.run_until_complete(main())
+if __name__ == '__main__':
+    with client:
+        client.loop.run_until_complete(main())
